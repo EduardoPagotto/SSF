@@ -50,6 +50,8 @@ class SubRPC(RPC_Responser):
             datefmt='%H:%M:%S',
         )
 
+        logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
+
         self.log = logging.getLogger('RPC.SubRPC')
         self.log.info(f'>>>>>> SSF v-{VERSION} ({DEPPLOY}), DB: {str(path1)} Storage: {str(self.storage)}')
 
@@ -129,7 +131,7 @@ class SubRPC(RPC_Responser):
                 id = self.db.insert(data_file)
             
                 file.save(final)
-                self.log.debug(f'new ID: {id} File:{str(final)}')
+                #self.log.debug(f'new ID: {id} File:{str(final)}')
                 self.tot_in += 1
 
         except Exception as exp:
@@ -161,6 +163,7 @@ class SubRPC(RPC_Responser):
 
     def info(self, id : int) -> dict | None:
         with self.lock_db:
+            self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
             data = self.db.get(doc_id=id)
             if data:
                 del data['internal']
@@ -171,22 +174,16 @@ class SubRPC(RPC_Responser):
 
     def infoAll(self, id : int) -> dict | None:
         with self.lock_db:
+            self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
             return self.db.get(doc_id=id)
 
-
-    def keep(self, id : int)-> Tuple [bool, str] :
-        now = datetime.now(tz=timezone.utc)
+    def keep(self, id : int):
         with self.lock_db:
-            self.db.update({'last': now.timestamp()}, doc_ids=[id])
+            self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
 
-        return True, 'ok'
-
-    def remove_file(self, id : int)-> Tuple [bool, str] :
-
+    def remove(self, id : int):
         with self.lock_db:
-            self.db.update({'last': 0}, doc_ids=[id]) # set to delete now
-
-        return True, 'ok'
+            self.db.update({'last': 0}, doc_ids=[id])
 
     def set_server_expire(self, days : int, hours : int, minute : int):
         with self.lock_db:

@@ -40,12 +40,12 @@ class ClienteRPC(ServiceBus):
         return self.__rpc().info(id)
 
     ''' Mantem ele por mais um ciclo '''
-    def keep(self, id : int)-> Tuple [bool, str] :
-        return self.__rpc().keep(id)
+    def keep(self, id : int):
+        self.__rpc().keep(id)
 
     ''' Remove arquivo existente '''
-    def remove(self, id : int)-> Tuple [bool, str] :
-        return self.__rpc().remove(id)
+    def remove(self, id : int):
+        self.__rpc().remove(id)
 
     def set_server_expire(self, days : int, hours : int, minute : int):
         self.__rpc().set_server_expire(days, hours, minute)
@@ -57,27 +57,26 @@ def main():
         log = logging.getLogger('Client')
 
         client = ClienteRPC('http://127.0.0.1:5151')
-        client.set_server_expire(0, 0, 59)
+        client.set_server_expire(0, 0, 5)
 
-        log.debug(f'InfoZ: {str(client.info(1))}')
+        #log.debug(f'InfoZ: {str(client.info(1))}')
 
         count=0
         while (count < 300):
 
-            id = client.upload_file('./data/disco1.jpg') # TODO refazer abaixo !!!!
-            log.debug(f'Id: {id}')
+            id = client.upload_file('./data/disco1.jpg')
+            log.debug(f'Id {id}: {str(client.info(id))}')
 
             id = client.upload_file('./data/disco1.jpg')
-            log.debug(f'Id: {id}')
+            log.debug(f'Id {id}: {str(client.info(id))}')
+
+            client.remove(id)
 
             id = client.upload_file('./data/disco1.jpg')
-            log.debug(f'Id: {id}')
+            log.debug(f'Id {id}: {str(client.info(id))}')
 
             id = client.upload_file('./data/disco1.jpg')
-            log.debug(f'Id: {id}')
-
-            id = client.upload_file('./data/disco1.jpg')
-            log.debug(f'Id: {id}')
+            log.debug(f'Id {id}: {str(client.info(id))}')
 
             res = client.download_file(id, './testez1.jpg')
             log.debug(f'Res: {str(res)}')
@@ -88,13 +87,8 @@ def main():
 
             #time.sleep(10)
 
-            client.remove(id)
-            log.debug(f'Info3: {str(client.info(id))}')
-
             count += 1
         
-
-
     except Exception as exp:
         log.error('Falha: {0}'.format(str(exp)))
 
@@ -107,5 +101,8 @@ if __name__ == '__main__':
         format='%(asctime)s %(name)-12s %(levelname)-8s %(threadName)-16s %(funcName)-20s %(message)s',
         datefmt='%H:%M:%S',
     )
+
+    logging.getLogger('werkzeug').setLevel(logging.CRITICAL) 
+    logging.getLogger('urllib3').setLevel(logging.CRITICAL)
 
     main()
