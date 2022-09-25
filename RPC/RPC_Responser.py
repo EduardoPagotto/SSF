@@ -1,14 +1,8 @@
 '''
 Created on 20190824
-Update on 20220917
+Update on 20220925
 @author: Eduardo Pagotto
 '''
-
-import logging
-import socket
-import json
-
-import threading
 
 from .__init__ import __json_rpc_version__ as json_rpc_version
 from .__init__ import ExceptionZeroRPC
@@ -27,11 +21,11 @@ class RPC_Responser(object):
         self.target : object= target
 
     def rpc_exec_func(self, dados : dict, protocol : object) -> dict:
-        """[Execule methodo local with paramters in json data (msg)]
+        """[Execute method local with paramters in dict]
         Args:
-            msg (str): [json Protocol data received (id, method, parameters)]
+            dados (dict): [json Protocol data received (id, method, parameters)]
         Returns:
-            str: [Resulto of method in json Protocol]
+            dict: [Resulto of method in json Protocol]
         """
 
         serial : int = dados['id']
@@ -57,4 +51,4 @@ class RPC_Responser(object):
                 return {'jsonrpc': json_rpc_version, 'error': {'code': exp2.args[1], 'message': 'Server error: ' + exp2.args[0]}, 'id': serial}
 
         except Exception as exp3:
-            return {'jsonrpc': json_rpc_version, 'error': {'code': -32603, 'message': 'Internal error: ' + str(exp3)}, 'id': serial}
+            return {'jsonrpc': json_rpc_version, 'error': {'code': -32603, 'message': 'Internal error: ' + str(exp3.args[0])}, 'id': serial}

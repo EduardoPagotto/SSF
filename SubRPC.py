@@ -17,8 +17,6 @@ from werkzeug.utils import secure_filename
 from tinydb import TinyDB, Query
 from RPC.RPC_Responser import RPC_Responser
 
-
-
 from RPC.__init__ import __version__ as VERSION
 from RPC.__init__ import __date_deploy__ as DEPPLOY
 
@@ -26,7 +24,6 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'zip', 'jpg'])
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 class SubRPC(RPC_Responser):
     def __init__(self, path_db : str, path_storage : str) -> None:
@@ -86,7 +83,7 @@ class SubRPC(RPC_Responser):
                         self.db.remove(doc_ids=[val.doc_id])
                         tot_out += 1
 
-                self.log.debug(f'Tick-Tack: {int(ticktack / 12)} In: {self.tot_in} Del: {tot_out} Tot: {tot_out - self.tot_in}')
+                self.log.debug(f'Tick-Tack: {int(ticktack / 12)} In: {self.tot_in} Del: {tot_out} Tot: {self.tot_in - tot_out}')
 
             ticktack += 1
             time.sleep(5)
@@ -97,7 +94,7 @@ class SubRPC(RPC_Responser):
     def call(self, incoming : dict) -> dict:
         return self.rpc_exec_func(incoming, None)
         
-    def save_Xfer(self, path_file_in: str , opt: dict, file: Any) -> Tuple[bool, str]:
+    def save_Xfer(self, path_file_in: str , opt: dict, file: Any) -> int:
 
         if file is None:
             raise Exception('No file part in the request')
@@ -105,45 +102,43 @@ class SubRPC(RPC_Responser):
         if allowed_file(file.filename) is False:
             raise Exception('Allowed file types are txt, pdf, png, jpg, jpeg, gif')
 
-        filename = secure_filename(file.filename)
-
-        path_file = pathlib.Path(filename)
-
         id : int = 0
-        now = datetime.now(tz=timezone.utc)
-        ts = now.timestamp() 
-        data_file = {'pathfile': str(path_file.resolve()),
-                     'created': ts,
-                     'last': ts,
-                     'internal' : 'Invalid'}
-
-        suffix = path_file.suffix
-
-        path1 : pathlib.Path = pathlib.Path(str(self.storage) + '/' + now.strftime('%Y%m%d/%H/%M'))
-        if path1.exists() is False:
-            path1.mkdir(parents=True)
-
-        self.count_file += 1
-        final : str = str(path1) + '/file{:05d}{}'.format(self.count_file, suffix)
-        data_file['internal'] = final
-
-        with self.lock_db:
-            id = self.db.insert(data_file)
-         
         try:
-            file.save(final)
-            #protocolo.receiveFile(final)
-            self.log.debug(f'new ID: {id} File:{str(final)}')
-            self.tot_in += 1
-            #protocolo.sendErro('Arquivo nao existe')
+            pp = pathlib.Path(path_file_in).parent
+            path_file = pathlib.Path(pp, secure_filename(file.filename))
+
+            now = datetime.now(tz=timezone.utc)
+            ts = now.timestamp() 
+            data_file = {'pathfile': str(path_file.resolve()),
+                         'created': ts,
+                         'last': ts,
+                         'opt': opt,
+                         'internal' : 'Invalid'}
+
+            suffix = path_file.suffix
+
+            path1 : pathlib.Path = pathlib.Path(str(self.storage) + '/' + now.strftime('%Y%m%d/%H/%M'))
+            if path1.exists() is False:
+                path1.mkdir(parents=True)
+
+            self.count_file += 1
+            final : str = str(path1) + '/file{:05d}{}'.format(self.count_file, suffix)
+            data_file['internal'] = final
+
+            with self.lock_db:
+                id = self.db.insert(data_file)
             
+                file.save(final)
+                self.log.debug(f'new ID: {id} File:{str(final)}')
+                self.tot_in += 1
+
         except Exception as exp:
             with self.lock_db:
                 self.db.remove(doc_ids=[id])
 
-            return False, str(exp.args[0])
+            raise Exception(exp)
             
-        return True, str(id)
+        return id
 
     def load_Xfer(self, id : int, protocolo : bytes) -> Tuple [bool, str]:
         try:

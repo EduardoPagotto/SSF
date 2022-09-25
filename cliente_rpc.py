@@ -13,21 +13,20 @@ from RPC.ServiceBus import ServiceBus
 class ClienteRPC(ServiceBus):
     def __init__(self, s_address: str):
         super().__init__(s_address)
-        #self.last_buffer : bytes = None
-        #self.last_pathfile : str = ''
 
     def __rpc(self):
         return self.getObject()
 
     ''' Salva um novo arquivo e inicia seu ciclo '''
-    def upload_file(self, path_file: str, opt: dict = {}) -> Tuple[bool, str ,int]:
-    
-        self.last_pathfile = path_file
+    def upload_file(self, path_file: str, opt: dict = {}) -> int:
         return self.__rpc().save_Xfer(path_file, opt)
 
     ''' Carrega um arquivo existente '''
     def download_file(self, id : int, pathfile : str) -> Tuple [bool, str]:
-        self.last_pathfile = pathfile
+
+
+
+
         return self.__rpc().load_Xfer(id)
 
     ''' Retorna os dados do arquivo '''
@@ -59,33 +58,32 @@ def main():
         count=0
         while (count < 300):
 
-            valid, id = client.upload_file('./data/disco1.jpg')
-            log.debug(f'Valid: {valid} Id: {id}')
+            id = client.upload_file('./data/disco1.jpg') # TODO refazer abaixo !!!!
+            log.debug(f'Id: {id}')
 
-            valid, id = client.upload_file('./data/disco1.jpg')
-            log.debug(f'Valid: {valid} Id: {id}')
+            id = client.upload_file('./data/disco1.jpg')
+            log.debug(f'Id: {id}')
 
-            valid, id = client.upload_file('./data/disco1.jpg')
-            log.debug(f'Valid: {valid} Id: {id}')
+            id = client.upload_file('./data/disco1.jpg')
+            log.debug(f'Id: {id}')
 
-            valid, id = client.upload_file('./data/disco1.jpg')
-            log.debug(f'Valid: {valid} Id: {id}')
+            id = client.upload_file('./data/disco1.jpg')
+            log.debug(f'Id: {id}')
 
-            valid, id = client.upload_file('./data/disco1.jpg')
-            log.debug(f'Valid: {valid} Id: {id}')
+            id = client.upload_file('./data/disco1.jpg')
+            log.debug(f'Id: {id}')
 
-            if valid is True:
-                res = client.download_file(id, './testez1.jpg')
-                log.debug(f'Res: {str(res)}')
-                log.debug(f'Info1: {str(client.info(id))}')
+            res = client.download_file(id, './testez1.jpg')
+            log.debug(f'Res: {str(res)}')
+            log.debug(f'Info1: {str(client.info(id))}')
 
-                client.keep(id)
-                log.debug(f'Info2: {str(client.info(id))}')
+            client.keep(id)
+            log.debug(f'Info2: {str(client.info(id))}')
 
-                #time.sleep(10)
+            #time.sleep(10)
 
-                client.remove(id)
-                log.debug(f'Info3: {str(client.info(id))}')
+            client.remove(id)
+            log.debug(f'Info3: {str(client.info(id))}')
 
             count += 1
         

@@ -5,8 +5,10 @@ Update on 20220924
 @author: Eduardo Pagotto
 '''
 
+from fileinput import filename
 import json
 import os
+import pathlib
 import shutil
 import tempfile
 from app import app, rpc, SSF_CFG_IP, SSF_CFG_PORT 
@@ -20,15 +22,15 @@ def allowed_file(filename):
 
 @app.route("/")
 def home():
-    return "Versao inicial!!!!!"
+    return "Versao Teste!!!!!"
 
 @app.route('/rpc-call-base', methods=['POST'])
 def rpc_call_base():
 
 	try :
-		data : dict = json.loads(request.headers.get('rpc-Json'))
-		output = rpc.call(data)
-		resp = jsonify(output)
+		input_rpc : dict = json.loads(request.headers.get('rpc-Json'))
+		output_rpc = rpc.call(input_rpc)
+		resp = jsonify(output_rpc)
 		resp.status_code = 201
 		return resp
 
@@ -41,36 +43,51 @@ def rpc_call_base():
 @app.route('/rpc-call-upload', methods=['POST'])
 def rpc_call_upload():
 
-	data : dict = json.loads(request.headers.get('rpc-Json'))
-	if 'file' in request.files:
-		file = request.files['file']
-		data['params'].append(file)
+	try :
+		input_rpc : dict = json.loads(request.headers.get('rpc-Json'))
+		if 'file' in request.files:
+			input_rpc['params'].append(request.files['file'])
+		else:
+			input_rpc['params'].append(None)
 
-		output = rpc.call(data)
-		resp = jsonify(output)
+		output_rpc = rpc.call(input_rpc)
+		resp = jsonify(output_rpc)
 		resp.status_code = 201
 		return resp
 
-	data['params'].append(None)
-
-	output = rpc.call(data)
-	resp = jsonify(output)
-	resp.status_code = 201
-	return resp
+	except Exception as exp:
+		resp = jsonify({'message' : str(exp.args[0])})
+		resp.status_code = 400
+		return resp
 
 
-@app.route('/rpc-call-download/<path:path>',methods = ['GET','POST'])
+@app.route('/download/<path:path>',methods = ['GET','POST'])
 def rpc_call_download(path):
-
 	"""Download a file."""
-	# try:
+	try:
+		rpc.log.debug('Val path ' + str(path))
+		data : dict = rpc.infoAll(int(path))
+		if data is None:
+			raise FileNotFoundError
 
-	output = rpc.call(request.headers.get('rpc-Json'))
+		path_all =  pathlib.Path(data['internal'])
+		uploads = os.path.join(app.config.root_path, path_all.parent)
+		return send_from_directory(uploads, path_all.name, as_attachment=True)
 
-	return send_from_directory('111.jpg', path, as_attachment=True)
-	# except FileNotFoundError:
-	# 	abort(404)
+	except FileNotFoundError:
 
+		resp = jsonify({'message' : 'File not found'})
+		resp.status_code = 404
+		return resp
+		#abort(404)
+
+	except TypeError as etp:
+		resp = jsonify({'message' : str(etp.args[0])})
+		resp.status_code = 400
+		return resp		
+
+	except Exception as exp:
+		return exp
 
 # @app.route('/get-files/<path:path>',methods = ['GET','POST'])
 # def get_files(path):
@@ -86,32 +103,24 @@ def download(filename):
     uploads = os.path.join('', '')
     return send_from_directory(directory=uploads, filename=filename)
 
-#From flask import Response
 
-# @app.route('/sendFile', methods=['POST'])
-# def sendFile():
-#     content = str(request.form['jsonval'])
-#     return Response(content, 
-#             mimetype='application/json',
-#             headers={'Content-Disposition':'attachment;filename=zones.geojson'})
+# def do_download_file(book, book_format, client, data, headers):
 
-def do_download_file(book, book_format, client, data, headers):
+#         # filename = os.path.join(config.config_calibre_dir, book.path)
+#         # if not os.path.isfile(os.path.join(filename, data.name + "." + book_format)):
+#         #     # ToDo: improve error handling
+#         #     log.error('File not found: %s', os.path.join(filename, data.name + "." + book_format))
 
-        # filename = os.path.join(config.config_calibre_dir, book.path)
-        # if not os.path.isfile(os.path.join(filename, data.name + "." + book_format)):
-        #     # ToDo: improve error handling
-        #     log.error('File not found: %s', os.path.join(filename, data.name + "." + book_format))
+#         # if client == "kobo" and book_format == "kepub":
+#         #     headers["Content-Disposition"] = headers["Content-Disposition"].replace(".kepub", ".kepub.epub")
 
-        # if client == "kobo" and book_format == "kepub":
-        #     headers["Content-Disposition"] = headers["Content-Disposition"].replace(".kepub", ".kepub.epub")
+# 		#https://www.fullstackpython.com/flask-helpers-make-response-examples.html
 
-		#https://www.fullstackpython.com/flask-helpers-make-response-examples.html
-
-        response = make_response(send_from_directory(filename, data.name + "." + book_format))
-        # ToDo Check headers parameter
-        for element in headers:
-            response.headers[element[0]] = element[1]
-        return response
+#         response = make_response(send_from_directory(filename, data.name + "." + book_format))
+#         # ToDo Check headers parameter
+#         for element in headers:
+#             response.headers[element[0]] = element[1]
+#         return response
 
 
 if __name__ == "__main__":

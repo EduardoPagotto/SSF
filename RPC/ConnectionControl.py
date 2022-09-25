@@ -30,7 +30,9 @@ class ConnectionControl(object):
             files= {'file': open(final,'rb')}
 
         response = requests.request("POST", url, headers=headers, data=payload, files=files)
-        #self.log.debug(response.text)
+        if response.status_code != 201:
+            raise Exception(response.text)
+
         return response.text
 
 
