@@ -6,7 +6,9 @@ Update on 20220921
 '''
 
 import logging
+import shutil
 from typing import Tuple
+import requests
 
 from RPC.ServiceBus import ServiceBus
 
@@ -22,12 +24,16 @@ class ClienteRPC(ServiceBus):
         return self.__rpc().save_Xfer(path_file, opt)
 
     ''' Carrega um arquivo existente '''
-    def download_file(self, id : int, pathfile : str) -> Tuple [bool, str]:
+    def download_file(self, id : int, pathfile : str):
 
+        url = self.addr + '/download/' + str(id)
+        response = requests.get(url, stream=True)
 
+        with open(pathfile, 'wb') as out_file:
+          shutil.copyfileobj(response.raw, out_file)
 
-
-        return self.__rpc().load_Xfer(id)
+        #print('The file was saved successfully')
+        #return self.__rpc().load_Xfer(id)
 
     ''' Retorna os dados do arquivo '''
     def info(self, id : int) -> dict:
