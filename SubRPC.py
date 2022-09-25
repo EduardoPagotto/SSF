@@ -41,7 +41,7 @@ class SubRPC(RPC_Responser):
         self.delta = timedelta(days=0, hours=2, minutes=0)
 
         self.count_file : int = 0
-        self.tot_in = 0
+        self.tot_in = len(self.db)
         self.done = False
 
         logging.basicConfig(

@@ -62,7 +62,7 @@ def main():
         #log.debug(f'InfoZ: {str(client.info(1))}')
 
         count=0
-        while (count < 300):
+        while (count < 100):
 
             id = client.upload_file('./data/disco1.jpg')
             log.debug(f'Id {id}: {str(client.info(id))}')
@@ -78,12 +78,11 @@ def main():
             id = client.upload_file('./data/disco1.jpg')
             log.debug(f'Id {id}: {str(client.info(id))}')
 
-            res = client.download_file(id, './testez1.jpg')
-            log.debug(f'Res: {str(res)}')
-            log.debug(f'Info1: {str(client.info(id))}')
+            client.download_file(id, './testez1.jpg')
+            log.debug(f'Id {id}: {str(client.info(id))}')
 
             client.keep(id)
-            log.debug(f'Info2: {str(client.info(id))}')
+            log.debug(f'Id {id}: {str(client.info(id))}')
 
             #time.sleep(10)
 

@@ -65,7 +65,7 @@ def rpc_call_upload():
 def rpc_call_download(path):
 	"""Download a file."""
 	try:
-		rpc.log.debug('Val path ' + str(path))
+		#rpc.log.debug('Val path ' + str(path))
 		data : dict = rpc.infoAll(int(path))
 		if data is None:
 			raise FileNotFoundError
