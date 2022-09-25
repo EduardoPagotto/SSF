@@ -5,6 +5,7 @@ Update on 20220924
 @author: Eduardo Pagotto
 '''
 
+import json
 import os
 import shutil
 import tempfile
@@ -25,7 +26,8 @@ def home():
 def rpc_call_base():
 
 	try :
-		output = rpc.call(request.headers.get('rpc-Json'))
+		data : dict = json.loads(request.headers.get('rpc-Json'))
+		output = rpc.call(data)
 		resp = jsonify(output)
 		resp.status_code = 201
 		return resp
@@ -39,42 +41,22 @@ def rpc_call_base():
 @app.route('/rpc-call-upload', methods=['POST'])
 def rpc_call_upload():
 
-	# check if the post request has the file part
-	if 'file' not in request.files:
-		resp = jsonify({'message' : 'No file part in the request'})
-		resp.status_code = 400
-		return resp
-        
-	file = request.files['file']
-	if file.filename == '':
-		resp = jsonify({'message' : 'No file selected for uploading'})
-		resp.status_code = 400
-		return resp
-        
-	if file and allowed_file(file.filename):
-		filename = secure_filename(file.filename)
+	data : dict = json.loads(request.headers.get('rpc-Json'))
+	if 'file' in request.files:
+		file = request.files['file']
+		data['params'].append(file)
 
-		with tempfile.TemporaryDirectory() as tmp:
-			arquivoTemp = os.path.join(tmp, filename)
-			file.save(arquivoTemp)
-
-			# TODO: Aqui!!! preciso do nome do arquivo
-			output = rpc.call(request.headers.get('rpc-Json'))
-			
-			if output['result'][0] is True:
-				id = int(output['result'][1])
-				reg = rpc.infoAll(id)
-				file_final = reg['internal']
-
-			shutil.move(arquivoTemp, file_final)
-			
-			resp = jsonify(output)
-			resp.status_code = 201
-			return resp
-	else:
-		resp = jsonify({'message' : 'Allowed file types are txt, pdf, png, jpg, jpeg, gif'})
-		resp.status_code = 400
+		output = rpc.call(data)
+		resp = jsonify(output)
+		resp.status_code = 201
 		return resp
+
+	data['params'].append(None)
+
+	output = rpc.call(data)
+	resp = jsonify(output)
+	resp.status_code = 201
+	return resp
 
 
 @app.route('/rpc-call-download/<path:path>',methods = ['GET','POST'])

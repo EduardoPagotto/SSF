@@ -14,16 +14,6 @@ class ConnectionControl(object):
         self.addr = addr
         self.log = logging.getLogger('Client')
 
-    def execute(self, input_rpc : str, *args, **kargs) -> str:
-
-        url : str = self.addr + "/rpc-call-base"
-
-        payload : dict ={}
-        headers : dict= {'rpc-Json': input_rpc}
-        files = None
-        response = requests.request("POST", url, headers=headers, data=payload, files=files)
-        return response.text
-
     def execute_file(self, input_rpc : dict, *args, **kargs) -> str:
 
         url : str
@@ -34,16 +24,10 @@ class ConnectionControl(object):
             url = self.addr + "/rpc-call-base"
             files = None
         else:
-            if 'save' in input_rpc['method']:
-                url = self.addr + "/rpc-call-upload"
-                path_file = pathlib.Path(input_rpc['params'][0])
-                final = path_file.resolve()
-                files= {'file': open(final,'rb')}
-            else: # load
-                url = self.addr + "/rpc-call-download"
-                r = requests.get(url, allow_redirects=True)
-                open('facebook.ico', 'wb').write(r.content)
-                
+            url = self.addr + "/rpc-call-upload"
+            path_file = pathlib.Path(input_rpc['params'][0])
+            final = path_file.resolve()
+            files= {'file': open(final,'rb')}
 
         response = requests.request("POST", url, headers=headers, data=payload, files=files)
         #self.log.debug(response.text)

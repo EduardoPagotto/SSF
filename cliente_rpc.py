@@ -52,26 +52,26 @@ def main():
         log = logging.getLogger('Client')
 
         client = ClienteRPC('http://127.0.0.1:5151')
-        #client.set_server_expire(0, 0, 59)
+        client.set_server_expire(0, 0, 59)
 
-        #log.debug(f'InfoZ: {str(client.info(100))}')
+        log.debug(f'InfoZ: {str(client.info(1))}')
 
         count=0
         while (count < 300):
 
-            valid, id = client.upload_file('./tempo/disco1.jpg')
+            valid, id = client.upload_file('./data/disco1.jpg')
             log.debug(f'Valid: {valid} Id: {id}')
 
-            valid, id = client.upload_file('./tempo/disco1.jpg')
+            valid, id = client.upload_file('./data/disco1.jpg')
             log.debug(f'Valid: {valid} Id: {id}')
 
-            valid, id = client.upload_file('./tempo/disco1.jpg')
+            valid, id = client.upload_file('./data/disco1.jpg')
             log.debug(f'Valid: {valid} Id: {id}')
 
-            valid, id = client.upload_file('./tempo/disco1.jpg')
+            valid, id = client.upload_file('./data/disco1.jpg')
             log.debug(f'Valid: {valid} Id: {id}')
 
-            valid, id = client.upload_file('./tempo/disco1.jpg')
+            valid, id = client.upload_file('./data/disco1.jpg')
             log.debug(f'Valid: {valid} Id: {id}')
 
             if valid is True:

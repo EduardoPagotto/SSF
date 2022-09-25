@@ -26,7 +26,7 @@ class RPC_Responser(object):
         """
         self.target : object= target
 
-    def rpc_exec_func(self, msg : str, protocol : object) -> dict:
+    def rpc_exec_func(self, dados : dict, protocol : object) -> dict:
         """[Execule methodo local with paramters in json data (msg)]
         Args:
             msg (str): [json Protocol data received (id, method, parameters)]
@@ -34,13 +34,8 @@ class RPC_Responser(object):
             str: [Resulto of method in json Protocol]
         """
 
-        dados : dict = json.loads(msg)
         serial : int = dados['id']
         metodo : str = dados['method']
-
-        # suffix used to add protocol used to extra communication with peer
-        # if '_Xfer' in metodo:
-        #     dados['params'].append(protocol)
 
         try:
             val = getattr(self.target, metodo)(*dados['params'], **dados['keys'])

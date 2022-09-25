@@ -9,14 +9,24 @@ import pathlib
 from datetime import datetime, timedelta, timezone
 import threading
 import time
-from typing import Tuple
+from typing import Any, Tuple
 from threading import Lock
+
+from werkzeug.utils import secure_filename
 
 from tinydb import TinyDB, Query
 from RPC.RPC_Responser import RPC_Responser
 
+
+
 from RPC.__init__ import __version__ as VERSION
 from RPC.__init__ import __date_deploy__ as DEPPLOY
+
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'zip', 'jpg'])
+
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 class SubRPC(RPC_Responser):
     def __init__(self, path_db : str, path_storage : str) -> None:
@@ -84,12 +94,20 @@ class SubRPC(RPC_Responser):
         self.log.info('thread cleanner_files stop')
 
 
-    def call(self, incoming : str) -> dict:
+    def call(self, incoming : dict) -> dict:
         return self.rpc_exec_func(incoming, None)
         
-    def save_Xfer(self, path_file_in: str , opt: dict) -> Tuple[bool, str]:
+    def save_Xfer(self, path_file_in: str , opt: dict, file: Any) -> Tuple[bool, str]:
 
-        path_file = pathlib.Path(path_file_in)
+        if file is None:
+            raise Exception('No file part in the request')
+
+        if allowed_file(file.filename) is False:
+            raise Exception('Allowed file types are txt, pdf, png, jpg, jpeg, gif')
+
+        filename = secure_filename(file.filename)
+
+        path_file = pathlib.Path(filename)
 
         id : int = 0
         now = datetime.now(tz=timezone.utc)
@@ -113,6 +131,7 @@ class SubRPC(RPC_Responser):
             id = self.db.insert(data_file)
          
         try:
+            file.save(final)
             #protocolo.receiveFile(final)
             self.log.debug(f'new ID: {id} File:{str(final)}')
             self.tot_in += 1
