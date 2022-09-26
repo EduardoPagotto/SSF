@@ -76,14 +76,19 @@ class SubRPC(RPC_Responser):
                 with self.lock_db:
                     q = Query()
                     itens = self.db.search(q.last < limit)
-                    for val in itens:
 
-                        file = pathlib.Path(val['internal'])
-                        file.unlink(missing_ok=True)
+                ll = []
+                for val in itens:
+                    ll.append(val.doc_id)
+                    file = pathlib.Path(val['internal'])
+                    file.unlink(missing_ok=True)
 
-                        self.log.debug(f"Remove ID:{val.doc_id} file: {val['internal']}")
-                        self.db.remove(doc_ids=[val.doc_id])
-                        tot_out += 1
+                    self.log.debug(f"Remove ID:{val.doc_id} file: {val['internal']}")
+                    tot_out += 1
+
+                if len(ll) > 0:
+                    with self.lock_db:
+                        self.db.remove(doc_ids=ll)
 
                 self.log.debug(f'Tick-Tack: {int(ticktack / 12)} In: {self.tot_in} Del: {tot_out} Tot: {self.tot_in - tot_out}')
 
