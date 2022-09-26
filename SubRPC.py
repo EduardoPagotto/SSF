@@ -24,7 +24,7 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'zip', 'jpg'])
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-class SubRPC(RPC_Responser):
+class ServerSSF(RPC_Responser):
     def __init__(self, path_db : str, path_storage : str) -> None:
         super().__init__(self)
 
@@ -55,7 +55,7 @@ class SubRPC(RPC_Responser):
 
         logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
 
-        self.log = logging.getLogger('RPC.SubRPC')
+        self.log = logging.getLogger('RPC.ServerSSF')
         self.log.info(f'>>>>>> SSF v-{VERSION} ({DEPLOY}), DB: {str(path1)} Storage: {str(self.storage)}')
 
         self.t_cleanner : Thread = Thread(target=self.cleanner, name='cleanner_files')

@@ -7,7 +7,7 @@ Update on 20220924
 from os import getenv
 from flask import Flask
 
-from SubRPC import SubRPC
+from SubRPC import ServerSSF
 
 # mypy: ignore-errors
 
@@ -16,7 +16,7 @@ SSF_CFG_PORT : int  = int(getenv('SSF_PORT')) if getenv('SSF_PORT') != None else
 SSF_CFG_DB : str  = getenv('SSF_DB') if getenv('SSF_DB') != None else './data/db'
 SSF_CFG_STORAGE : str = getenv('SSF_STORAGE') if getenv('SSF_STORAGE') != None else './data/storage'
 
-rpc = SubRPC(SSF_CFG_DB, SSF_CFG_STORAGE)
+rpc = ServerSSF(SSF_CFG_DB, SSF_CFG_STORAGE)
 
 app = Flask(__name__)
 app.secret_key = "secret key"
