@@ -8,7 +8,7 @@ import logging
 import pathlib
 import time
 
-from typing import Any
+from typing import Any, Tuple
 from threading import Lock, Thread
 from datetime import datetime, timedelta, timezone
 
@@ -107,13 +107,49 @@ class SubRPC(RPC_Responser):
 
         self.log.info('thread cleanner_files stop')
 
-    def save_Xfer(self, path_file_in: str , opt: dict, file: Any) -> int:
+    def info(self, id : int) -> dict | None:
+        data : dict = {}
+        with self.lock_db:
+            data = self.db.get(doc_id=id)
+
+        if (data is not None) and (data['last'] != 0):
+            del data['internal']
+            return data
+                
+        return None
+
+    def keep(self, id : int) -> bool:
+        try:
+            with self.lock_db:
+                self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
+            
+            return True
+
+        except Exception:
+            return False
+
+    def remove(self, id : int) -> bool:
+        try:
+            with self.lock_db:
+                self.db.update({'last': 0}, doc_ids=[id])
+
+            return True
+
+        except Exception:
+            return False
+
+    def set_server_expire(self, days : int, hours : int, minute : int):
+        with self.lock_db:
+            self.cleanAt = (days, hours, minute)
+            self.delta = timedelta(days=days, hours=hours, minutes=minute)
+
+    def save_Xfer(self, path_file_in: str , opt: dict, file: Any) -> Tuple[int, str]:
 
         if file is None:
-            raise Exception('No file part in the request')
+            return -1, 'No file part in the request'
 
         if allowed_file(file.filename) is False:
-            raise Exception('Allowed file types are txt, pdf, png, jpg, jpeg, gif')
+            return -1, 'Allowed file types are: ' + str(ALLOWED_EXTENSIONS)
 
         id : int = 0
         try:
@@ -149,39 +185,16 @@ class SubRPC(RPC_Responser):
             with self.lock_db:
                 self.db.remove(doc_ids=[id])
 
-            raise Exception(exp)
+            return -1 , str(exp.args[0])
             
-        return id
+        return id , 'OK'
 
-    def info(self, id : int) -> dict | None:
+
+    def infoAll(self, id : int) -> dict:
         with self.lock_db:
-            #self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
             data = self.db.get(doc_id=id)
-            if data:
-                del data['internal']
-                if data['last'] == 0:
-                    return None
-
-            return data
-
-    def infoAll(self, id : int) -> dict | None:
-        try:
-            with self.lock_db:
+            if (data is not None) and (data['last'] != 0):
                 self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
-                return self.db.get(doc_id=id)
+                return data
 
-        except Exception as exp:
-            raise FileNotFoundError(f'File not found id ' + str(exp.args[0]))
-
-    def keep(self, id : int):
-        with self.lock_db:
-            self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
-
-    def remove(self, id : int):
-        with self.lock_db:
-            self.db.update({'last': 0}, doc_ids=[id])
-
-    def set_server_expire(self, days : int, hours : int, minute : int):
-        with self.lock_db:
-            self.cleanAt = (days, hours, minute)
-            self.delta = timedelta(days=days, hours=hours, minutes=minute)
+        raise FileNotFoundError(f'File not found id {str(id)}')

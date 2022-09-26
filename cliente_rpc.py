@@ -20,39 +20,39 @@ class ClienteRPC(ServiceBus):
     def __rpc(self):
         return self.getObject()
 
+    ''' Infos of file '''
+    def info(self, id : int) -> dict | None:
+        return self.__rpc().info(id)
+
+    ''' keep more cleanAt cicle '''
+    def keep(self, id : int) -> bool:
+        return self.__rpc().keep(id)
+
+    ''' Remove file '''
+    def remove(self, id : int) -> bool:
+        return self.__rpc().remove(id)
+
+    def cleanAt(self, days : int, hours : int, minute : int):
+        self.__rpc().set_server_expire(days, hours, minute)
+
     ''' Upload of file '''
-    def upload(self, path_file: str, opt: dict = {}) -> int:
+    def upload(self, path_file: str, opt: dict = {}) -> Tuple[int, str]:
         return self.__rpc().save_Xfer(path_file, opt)
 
     ''' Download file '''
-    def download(self, id : int, pathfile : str):
+    def download(self, id : int, pathfile : str) -> Tuple[bool, str]:
 
         url = self.addr + '/download/' + str(id)
         response = requests.get(url, stream=True)
-
         if (response.status_code == 201) or (response.status_code == 200):
             with open(pathfile, 'wb') as out_file:
                 shutil.copyfileobj(response.raw, out_file)
                 
-            return
+            return True, 'OK'
 
         motivo : dict = json.loads(response.text)
-        raise Exception(motivo['message'])
 
-    ''' Infos of file '''
-    def info(self, id : int) -> dict:
-        return self.__rpc().info(id)
-
-    ''' keep more cleanAt cicle '''
-    def keep(self, id : int):
-        self.__rpc().keep(id)
-
-    ''' Remove file '''
-    def remove(self, id : int):
-        self.__rpc().remove(id)
-
-    def cleanAt(self, days : int, hours : int, minute : int):
-        self.__rpc().set_server_expire(days, hours, minute)
+        return False, motivo['message']
 
 
 def main():
@@ -63,29 +63,38 @@ def main():
         client = ClienteRPC('http://127.0.0.1:5151')
         client.cleanAt(0, 0, 5)
 
-        #ggg= client.info(1000)
-        #client.download_file(100, './testez1.jpg')
-        #log.debug(f'InfoZ: {str(client.info(1))}')
+        id = 1000
+        ggg = client.info(id)
+        ttt = client.remove(id)
+        kkk = client.keep(id)
+        valid, msg_erro = client.download(id, './testez1.jpg')
+        log.debug(f'Id:{id}: msg:{msg_erro} info:{str(client.info(id))}')
 
         count=0
-        while (count < 100):
+        while (count < 500):
 
-            id = client.upload('./data/disco1.jpg')
-            log.debug(f'Id {id}: {str(client.info(id))}')
+            id, msg = client.upload('./data/disco1.jpg')
+            log.debug(f'Id:{id}: msg:{msg} info:{str(client.info(id))}')
 
-            id = client.upload('./data/disco1.jpg')
-            log.debug(f'Id {id}: {str(client.info(id))}')
+            id, msg = client.upload('./data/disco1.jpg')
+            log.debug(f'Id:{id}: msg:{msg} info:{str(client.info(id))}')
 
-            client.remove(id)
+            zzz = client.remove(id)
 
-            id = client.upload('./data/disco1.jpg')
-            log.debug(f'Id {id}: {str(client.info(id))}')
+            valid, msg_erro = client.download(id, './testez1.jpg')
+            log.debug(f'Id:{id}: msg:{msg_erro} info:{str(client.info(id))}')
 
-            id = client.upload('./data/disco1.jpg')
-            log.debug(f'Id {id}: {str(client.info(id))}')
+            id, msg = client.upload('./data/disco1.jpg')
+            log.debug(f'Id:{id}: msg:{msg} info:{str(client.info(id))}')
+            
+            valid, msg_erro = client.download(id, './testez1.jpg')
+            log.debug(f'Id:{id}: msg:{msg_erro} info:{str(client.info(id))}')
 
-            client.download(id, './testez1.jpg')
-            log.debug(f'Id {id}: {str(client.info(id))}')
+            id, msg = client.upload('./data/disco1.jpg')
+            log.debug(f'Id:{id}: msg:{msg} info:{str(client.info(id))}')
+
+            id, msg = client.upload('./data/disco1.jpg')
+            log.debug(f'Id:{id}: msg:{msg} info:{str(client.info(id))}')
 
             client.keep(id)
             log.debug(f'Id {id}: {str(client.info(id))}')
