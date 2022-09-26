@@ -1,6 +1,6 @@
 '''
 Created on 20190824
-Update on 20220925
+Update on 20220926
 @author: Eduardo Pagotto
 '''
 
@@ -20,19 +20,19 @@ class RPC_Responser(object):
         """
         self.target : object= target
 
-    def rpc_exec_func(self, dados : dict, protocol : object) -> dict:
+    def call(self, reg : dict) -> dict:
         """[Execute method local with paramters in dict]
         Args:
-            dados (dict): [json Protocol data received (id, method, parameters)]
+            reg (dict): [json Protocol data received (id, method, parameters)]
         Returns:
             dict: [Resulto of method in json Protocol]
         """
 
-        serial : int = dados['id']
-        metodo : str = dados['method']
+        serial : int = reg['id']
+        metodo : str = reg['method']
 
         try:
-            val = getattr(self.target, metodo)(*dados['params'], **dados['keys'])
+            val = getattr(self.target, metodo)(*reg['params'], **reg['keys'])
             return {'jsonrpc': json_rpc_version, 'result': val, 'id': serial}
 
         except AttributeError as exp:

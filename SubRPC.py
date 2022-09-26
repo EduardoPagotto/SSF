@@ -1,24 +1,23 @@
 '''
 Created on 20220924
-Update on 20220924
+Update on 20220926
 @author: Eduardo Pagotto
 '''
 
 import logging
 import pathlib
-from datetime import datetime, timedelta, timezone
-import threading
 import time
-from typing import Any, Tuple
-from threading import Lock
+
+from typing import Any
+from threading import Lock, Thread
+from datetime import datetime, timedelta, timezone
 
 from werkzeug.utils import secure_filename
-
 from tinydb import TinyDB, Query
-from RPC.RPC_Responser import RPC_Responser
 
+from RPC.RPC_Responser import RPC_Responser
 from RPC.__init__ import __version__ as VERSION
-from RPC.__init__ import __date_deploy__ as DEPPLOY
+from RPC.__init__ import __date_deploy__ as DEPLOY
 
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'zip', 'jpg'])
 
@@ -39,10 +38,14 @@ class SubRPC(RPC_Responser):
         self.storage.mkdir(parents=True, exist_ok=True)
 
         self.delta = timedelta(days=0, hours=2, minutes=0)
+        self.cleanAt : tuple = (0,2,0)
 
         self.count_file : int = 0
         self.tot_in = len(self.db)
-        self.done = False
+        self.tot_out : int = 0
+        self.tot_dowload : int = 0
+        self.ticktack : int = 0
+        self.done : bool = False
 
         logging.basicConfig(
             level=logging.DEBUG,
@@ -53,10 +56,19 @@ class SubRPC(RPC_Responser):
         logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
 
         self.log = logging.getLogger('RPC.SubRPC')
-        self.log.info(f'>>>>>> SSF v-{VERSION} ({DEPPLOY}), DB: {str(path1)} Storage: {str(self.storage)}')
+        self.log.info(f'>>>>>> SSF v-{VERSION} ({DEPLOY}), DB: {str(path1)} Storage: {str(self.storage)}')
 
-        self.t_cleanner : threading.Thread = threading.Thread(target=self.cleanner, name='cleanner_files')
+        self.t_cleanner : Thread = Thread(target=self.cleanner, name='cleanner_files')
         self.t_cleanner.start()
+
+    def sumario(self) -> str :
+        msg = f'>>>>>> SSF v-{VERSION} ({DEPLOY})<p>\
+                Tick-Tack: {int(self.ticktack / 12)} File Index {self.count_file} <p> \
+                Uploads: {self.tot_in},  Downloads: {self.tot_dowload} <p>\
+                Deleted: {self.tot_out}, Remain: {self.tot_in - self.tot_out} <p>\
+                Clean at-> Days: {self.cleanAt[0]} hours: {self.cleanAt[1]} minutes: {self.cleanAt[2]}'
+
+        return msg
 
     def cleanner(self) ->None:
         """[Garbage collector of files]
@@ -64,11 +76,9 @@ class SubRPC(RPC_Responser):
 
         time.sleep(10)
         self.log.info('thread cleanner_files start')
-        ticktack : int = 0
-        tot_out : int = 0
         while self.done is False:
 
-            if (ticktack % 12) == 0:
+            if (self.ticktack % 12) == 0:
 
                 now = datetime.now(tz=timezone.utc)
                 limit = (now - self.delta).timestamp()
@@ -83,24 +93,20 @@ class SubRPC(RPC_Responser):
                     file = pathlib.Path(val['internal'])
                     file.unlink(missing_ok=True)
 
-                    self.log.debug(f"Remove ID:{val.doc_id} file: {val['internal']}")
-                    tot_out += 1
+                    self.log.debug(f"Remove Id:{val.doc_id}, {val['internal']}")
+                    self.tot_out += 1
 
                 if len(ll) > 0:
                     with self.lock_db:
                         self.db.remove(doc_ids=ll)
 
-                self.log.debug(f'Tick-Tack: {int(ticktack / 12)} In: {self.tot_in} Del: {tot_out} Tot: {self.tot_in - tot_out}')
+                self.log.debug(f'Tick-Tack: {int(self.ticktack / 12)} In: {self.tot_in} Del: {self.tot_out} Tot: {self.tot_in - self.tot_out}')
 
-            ticktack += 1
+            self.ticktack += 1
             time.sleep(5)
 
         self.log.info('thread cleanner_files stop')
 
-
-    def call(self, incoming : dict) -> dict:
-        return self.rpc_exec_func(incoming, None)
-        
     def save_Xfer(self, path_file_in: str , opt: dict, file: Any) -> int:
 
         if file is None:
@@ -147,28 +153,9 @@ class SubRPC(RPC_Responser):
             
         return id
 
-    def load_Xfer(self, id : int, protocolo : bytes) -> Tuple [bool, str]:
-        try:
-
-            param : dict | None = None
-            with self.lock_db:
-                param = self.db.get(doc_id=id)
-                if (param is not None) and (param['last'] != 0):
-                    self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
-                else:
-                    #protocolo.sendErro('Arquivo nao existe')
-                    return False, 'Arquivo nao existe'
-
-            #protocolo.sendFile(param['internal'])
-
-        except Exception as exp:
-            return False, str(exp.args[0])
-            
-        return True, 'ok' 
-
     def info(self, id : int) -> dict | None:
         with self.lock_db:
-            self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
+            #self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
             data = self.db.get(doc_id=id)
             if data:
                 del data['internal']
@@ -178,9 +165,13 @@ class SubRPC(RPC_Responser):
             return data
 
     def infoAll(self, id : int) -> dict | None:
-        with self.lock_db:
-            self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
-            return self.db.get(doc_id=id)
+        try:
+            with self.lock_db:
+                self.db.update({'last': datetime.now(tz=timezone.utc).timestamp()}, doc_ids=[id])
+                return self.db.get(doc_id=id)
+
+        except Exception as exp:
+            raise FileNotFoundError(f'File not found id ' + str(exp.args[0]))
 
     def keep(self, id : int):
         with self.lock_db:
@@ -192,4 +183,5 @@ class SubRPC(RPC_Responser):
 
     def set_server_expire(self, days : int, hours : int, minute : int):
         with self.lock_db:
+            self.cleanAt = (days, hours, minute)
             self.delta = timedelta(days=days, hours=hours, minutes=minute)
