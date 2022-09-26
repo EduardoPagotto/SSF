@@ -91,4 +91,4 @@ class RPC_Call(object):
         Returns:
             (dict): [Result of RPC call]
         """
-        return self.decode(self.control.execute_file(self.encode(args, kargs), args, kargs))
+        return self.decode(self.control.exec(self.encode(args, kargs), args, kargs))

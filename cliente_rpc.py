@@ -1,24 +1,52 @@
 #!/usr/bin/env python3
 '''
 Created on 20220917
-Update on 20220921
+Update on 20220926
 @author: Eduardo Pagotto
 '''
 
 import json
 import logging
+import pathlib
 import shutil
 from typing import Tuple
 import requests
 
-from RPC.ServiceBus import ServiceBus
+from RPC.ConnectionControl import ConnectionControl
+from RPC.ProxyObject import ProxyObject
 
-class ClienteRPC(ServiceBus):
+class ConnectionRestApi(ConnectionControl):
+    def __init__(self, addr : str):
+        super().__init__(addr)
+
+    def exec(self, input_rpc : dict, *args, **kargs) -> str:
+        url : str
+        headers : dict= {'rpc-Json': json.dumps(input_rpc)}
+        payload : dict ={}
+
+        if '_Xfer' not in input_rpc['method']:
+            # comandos rpc's
+            url = self.getUrl() + "/rpc-call-base"
+            files = None
+        else:
+            # comando rpc com upload junto
+            url = self.getUrl() + "/rpc-call-upload"
+            path_file = pathlib.Path(input_rpc['params'][0])
+            final = path_file.resolve()
+            files= {'file': open(final,'rb')}
+
+        response = requests.request("POST", url, headers=headers, data=payload, files=files)
+        if response.status_code != 201:
+            raise Exception(response.text)
+
+        return response.text # string com dict do rpcjson
+
+class ClienteRPC(object):
     def __init__(self, s_address: str):
-        super().__init__(s_address)
+        self.restAPI = ConnectionRestApi(s_address)
 
     def __rpc(self):
-        return self.getObject()
+        return ProxyObject(self.restAPI)
 
     ''' Infos of file '''
     def info(self, id : int) -> dict | None:
@@ -42,7 +70,7 @@ class ClienteRPC(ServiceBus):
     ''' Download file '''
     def download(self, id : int, pathfile : str) -> Tuple[bool, str]:
 
-        url = self.addr + '/download/' + str(id)
+        url = self.restAPI.getUrl() + '/download/' + str(id)
         response = requests.get(url, stream=True)
         if (response.status_code == 201) or (response.status_code == 200):
             with open(pathfile, 'wb') as out_file:
