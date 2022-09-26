@@ -15,9 +15,9 @@ from datetime import datetime, timedelta, timezone
 from werkzeug.utils import secure_filename
 from tinydb import TinyDB, Query
 
-from RPC.RPC_Responser import RPC_Responser
-from RPC.__init__ import __version__ as VERSION
-from RPC.__init__ import __date_deploy__ as DEPLOY
+from SimplestRPC.RPC_Responser import RPC_Responser
+from SimplestRPC.__init__ import __version__ as VERSION
+from SimplestRPC.__init__ import __date_deploy__ as DEPLOY
 
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'zip', 'jpg'])
 
@@ -55,7 +55,7 @@ class ServerSSF(RPC_Responser):
 
         logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
 
-        self.log = logging.getLogger('RPC.ServerSSF')
+        self.log = logging.getLogger('SimplestRPCServerSSF')
         self.log.info(f'>>>>>> SSF v-{VERSION} ({DEPLOY}), DB: {str(path1)} Storage: {str(self.storage)}')
 
         self.t_cleanner : Thread = Thread(target=self.cleanner, name='cleanner_files')

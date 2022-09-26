@@ -1,13 +1,13 @@
 #!./venv/bin/python3
 '''
-Created on 20190821
-Update on 20220922
+Created on 20220926
+Update on 20220926
 @author: Eduardo Pagotto
 '''
 
 from setuptools import setup, find_packages
 
-from RPC.__init__ import __version__ as VERSION
+from SimplestRPC.__init__ import __version__ as VERSION
 
 PACKAGE = "SSF"
 
@@ -30,5 +30,19 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent"
     ],
-    install_requires=['typed-ast','typing-extensions', 'wheel', 'tinydb'],
-)
+    install_requires=['certifi',
+                      'charset-normalizer',
+                      'click',
+                      'Flask',
+                      'idna',
+                      'itsdangerous',
+                      'Jinja2',
+                      'MarkupSafe',
+                      'requests',
+                      'types-requests',
+                      'setuptools',
+                      'tinydb',
+                      'tomli',
+                      'typing_extensions',
+                      'urllib3',
+                      'Werkzeug'])

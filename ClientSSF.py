@@ -12,8 +12,8 @@ import shutil
 from typing import Tuple
 import requests
 
-from RPC.ConnectionControl import ConnectionControl
-from RPC.ProxyObject import ProxyObject
+from SimplestRPC.ConnectionControl import ConnectionControl
+from SimplestRPC.ProxyObject import ProxyObject
 
 class ConnectionRestApi(ConnectionControl):
     def __init__(self, addr : str):
