@@ -19,7 +19,7 @@ class ConnectionRestApi(ConnectionControl):
     def __init__(self, addr : str):
         super().__init__(addr)
 
-    def exec(self, input_rpc : dict, *args, **kargs) -> str:
+    def exec(self, input_rpc : dict, *args, **kargs) -> dict:
         url : str
         headers : dict= {'rpc-Json': json.dumps(input_rpc)}
         payload : dict ={}
@@ -39,7 +39,7 @@ class ConnectionRestApi(ConnectionControl):
         if response.status_code != 201:
             raise Exception(response.text)
 
-        return response.text # string com dict do rpcjson
+        return json.loads(response.text) # dict do rpcjson
 
 class ClienteRPC(object):
     def __init__(self, s_address: str):

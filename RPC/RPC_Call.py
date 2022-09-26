@@ -1,6 +1,6 @@
 '''
 Created on 20190823
-Update on 20210212
+Update on 20220926
 @author: Eduardo Pagotto
 '''
 
@@ -61,33 +61,29 @@ class RPC_Call(object):
             arguments = args[0]
             keys = args[1]
 
-        #return json.dumps({'jsonrpc':json_rpc_version, 'id':self.serial, 'method': self.method, 'params': arguments, 'keys': keys})
         return {'jsonrpc':json_rpc_version, 'id':self.serial, 'method': self.method, 'params': arguments, 'keys': keys}
 
 
-    def decode(self, msg : str) -> dict:
+    def decode(self, reg : dict) -> dict:
         """[decode json Protocol]
         Args:
-            msg (str): [text with json]
+            reg (dict): [rpc fields]
         Raises:
             ExceptionZeroRPC: [Raised exception on Server of RPC]
             ExceptionZeroRPC: [FATAL!!! invalid ID]
         Returns:
-            dict: [description]
+            dict: [Result os fields]
         """
+        if reg['id'] == self.serial:
+            if 'error' in reg:
+                raise ExceptionZeroRPC(reg['error']['message'], reg['error']['code'])
 
-        # TODO: get exceptions from json
-        dados = json.loads(msg)
-        if dados['id'] == self.serial:
-            if 'error' in dados:
-                raise ExceptionZeroRPC(dados['error']['message'], dados['error']['code'])
+            return reg['result']
 
-            return dados['result']
-
-        raise ExceptionZeroRPC('Parse error, id {0} should be {1}'.format(dados['id'], self.serial), -32700)
+        raise ExceptionZeroRPC('Parse error, id {0} should be {1}'.format(reg['id'], self.serial), -32700)
 
     def __call__(self, *args, **kargs) -> dict:
-        """[Execut RPC on server and get result]
+        """[Call RPC on connection and get result]
         Returns:
             (dict): [Result of RPC call]
         """

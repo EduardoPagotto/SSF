@@ -14,5 +14,5 @@ class ConnectionControl(ABC):
         return self.__addr
 
     @abstractmethod
-    def exec(self, input_rpc : dict, *args, **kargs) -> str:
-        return ''
+    def exec(self, input_rpc : dict, *args, **kargs) -> dict:
+        return {}
