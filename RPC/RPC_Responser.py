@@ -5,7 +5,7 @@ Update on 20220926
 '''
 
 from .__init__ import __json_rpc_version__ as json_rpc_version
-from .__init__ import ExceptionZeroRPC
+from .__init__ import ExceptionRPC
 
 class RPC_Responser(object):
     """[Connection thread with server RPC ]
@@ -41,14 +41,14 @@ class RPC_Responser(object):
         except TypeError as exp1:
             return {'jsonrpc': json_rpc_version, 'error': {'code': -32602, 'message': 'Invalid params: '+ str(exp1)}, 'id': serial}
 
-        except ExceptionZeroRPC as exp2:
+        except ExceptionRPC as exp2:
             tot = len(exp2.args)
             if tot == 0:
-                return {'jsonrpc': json_rpc_version, 'error': {'code': -32000, 'message': 'Server error: Generic Zero RPC Exception'}, 'id': serial}
+                return {'jsonrpc': json_rpc_version, 'error': {'code': -32000, 'message': 'server error: generic RPC exception'}, 'id': serial}
             elif tot == 1:
-                return {'jsonrpc': json_rpc_version, 'error': {'code': -32001, 'message': 'Server error: ' + exp2.args[0]}, 'id': serial}
+                return {'jsonrpc': json_rpc_version, 'error': {'code': -32001, 'message': 'server error: ' + exp2.args[0]}, 'id': serial}
             else:
-                return {'jsonrpc': json_rpc_version, 'error': {'code': exp2.args[1], 'message': 'Server error: ' + exp2.args[0]}, 'id': serial}
+                return {'jsonrpc': json_rpc_version, 'error': {'code': exp2.args[1], 'message': 'server error: ' + exp2.args[0]}, 'id': serial}
 
         except Exception as exp3:
-            return {'jsonrpc': json_rpc_version, 'error': {'code': -32603, 'message': 'Internal error: ' + str(exp3.args[0])}, 'id': serial}
+            return {'jsonrpc': json_rpc_version, 'error': {'code': -32603, 'message': 'server side error: ' + str(exp3.args[0])}, 'id': serial}

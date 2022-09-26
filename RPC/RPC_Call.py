@@ -4,12 +4,11 @@ Update on 20220926
 @author: Eduardo Pagotto
 '''
 
-import json
 import threading
 import random
 
 from .__init__ import __json_rpc_version__ as json_rpc_version
-from .__init__ import ExceptionZeroRPC
+from .__init__ import ExceptionRPC
 from .ConnectionControl import ConnectionControl
 
 class RPC_Call(object):
@@ -17,8 +16,8 @@ class RPC_Call(object):
     Args:
         object ([type]): [description]
     Raises:
-        ExceptionZeroRPC: [Raised exception on Server of RPC]
-        ExceptionZeroRPC: [FATAL!!! invalid ID]
+        ExceptionRPC: [Raised exception on Server of RPC]
+        ExceptionRPC: [FATAL!!! invalid ID]
     Returns:
         [type]: [description]
     """
@@ -69,18 +68,18 @@ class RPC_Call(object):
         Args:
             reg (dict): [rpc fields]
         Raises:
-            ExceptionZeroRPC: [Raised exception on Server of RPC]
-            ExceptionZeroRPC: [FATAL!!! invalid ID]
+            ExceptionRPC: [Raised exception on Server of RPC]
+            ExceptionRPC: [FATAL!!! invalid ID]
         Returns:
             dict: [Result os fields]
         """
         if reg['id'] == self.serial:
             if 'error' in reg:
-                raise ExceptionZeroRPC(reg['error']['message'], reg['error']['code'])
+                raise ExceptionRPC(reg['error']['message'], reg['error']['code'])
 
             return reg['result']
 
-        raise ExceptionZeroRPC('Parse error, id {0} should be {1}'.format(reg['id'], self.serial), -32700)
+        raise ExceptionRPC('Parse error, id {0} should be {1}'.format(reg['id'], self.serial), -32700)
 
     def __call__(self, *args, **kargs) -> dict:
         """[Call RPC on connection and get result]
