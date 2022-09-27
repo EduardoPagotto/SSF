@@ -1,4 +1,4 @@
-__version__ : str = '1.0.0'
+__version__ : str = '1.0.1'
 __date_deploy__ : str = '20220927'
 __json_rpc_version__ : str = '2.0'
 

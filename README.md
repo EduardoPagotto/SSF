@@ -47,7 +47,7 @@ Simple Storage File
 
 2. Build:
     ```bash
-    # create ./dist/SSF.1.0.0.tar.gz
+    # create ./dist/SSF.1.0.1.tar.gz
     make dist
     ```
 
