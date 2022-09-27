@@ -7,7 +7,7 @@ Update on 20220924
 from os import getenv
 from flask import Flask
 
-from ServerSSF import ServerSSF
+from Server.ServerSSF import ServerSSF
 
 # mypy: ignore-errors
 

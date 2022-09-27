@@ -7,7 +7,7 @@ Update on 20220926
 
 from setuptools import setup, find_packages
 
-from SimplestRPC.__init__ import __version__ as VERSION
+from __init__ import __version__ as VERSION
 
 PACKAGE = "SSF"
 
@@ -45,4 +45,5 @@ setup(
                       'tomli',
                       'typing_extensions',
                       'urllib3',
-                      'Werkzeug'])
+                      'Werkzeug',
+                      'wheel'])
