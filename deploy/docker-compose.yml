@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  SSFService:
+    container_name: server_ssf_dev
+    build:
+      context: ..
+    image: ssf_server_img
+    hostname: "SSF01"
+    ports:
+    - 5151:5151
+    volumes:
+    - ./data:/opt
