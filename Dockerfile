@@ -10,7 +10,7 @@ ENV SSF_CFG_STORAGE "/opt/storage"
 
 EXPOSE 5151/tcp
 
-COPY ./dist/SSF-0.0.1.tar.gz .
+COPY ./dist/SSF-1.0.0.tar.gz .
 COPY ./deploy/install.sh .
 COPY ./app.py .
 COPY ./main.py .

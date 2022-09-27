@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 Created on 20220917
-Update on 20220926
+Update on 20220927
 @author: Eduardo Pagotto
 '''
 
@@ -39,7 +39,10 @@ def main():
 
             id, msg = client.upload('./data/disco1.jpg')
             log.debug(f'Id:{id}: msg:{msg} info:{str(client.info(id))}')
-            
+
+            # valid, msg_erro = client.download(id, '.')
+            # log.debug(f'Id:{id}: msg:{msg_erro} info:{str(client.info(id))}')
+
             valid, msg_erro = client.download(id, './testez1.jpg')
             log.debug(f'Id:{id}: msg:{msg_erro} info:{str(client.info(id))}')
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 Created on 20220917
-Update on 20220926
+Update on 20220927
 @author: Eduardo Pagotto
 '''
 
@@ -120,20 +120,34 @@ class ClientSSF(object):
 
         Args:
             id (int): id of file stored
-            pathfile (str): path and name to store
+            pathfile (str): path file or only path 
 
         Returns:
-            Tuple[bool, str]: true and OK or False and error
+            Tuple[bool, str]: true and path file or False and error
         """
-
+        final : str = ''
         url = self.restAPI.getUrl() + '/download/' + str(id)
+
+        pt = pathlib.Path(pathfile)
+        if pt.is_dir() is True:
+            data = self.info(id)
+            if data is None:
+                return False, f'File Not Found {str(id)}'
+
+            final = str(pt.joinpath(data['name']).resolve())
+        else:
+            final = str(pt.resolve()) #pathfile
+            
         response = requests.get(url, stream=True)
         if (response.status_code == 201) or (response.status_code == 200):
-            with open(pathfile, 'wb') as out_file:
+            with open(final, 'wb') as out_file:
                 shutil.copyfileobj(response.raw, out_file)
                 
-            return True, 'OK'
+            return True, final
 
-        motivo : dict = json.loads(response.text)
+        try:
+            motivo : dict = json.loads(response.text)
+        except:
+            return False, str(response.content)
 
         return False, motivo['message']
