@@ -46,29 +46,85 @@ class ClientSSF(object):
         self.restAPI = ConnectionRestApi(s_address)
 
     def __rpc(self):
+        """Internal method to call server
+
+        Returns:
+            _type_: Connection controller
+        """
+
         return ProxyObject(self.restAPI)
 
-    ''' Infos of file '''
     def info(self, id : int) -> dict | None:
+        """ Get a dictionary with properties of file stored
+
+        Args:
+            id (int): id of exiting file
+        Returns:
+            dict | None: Dict with data properties ou None is not exist
+        """
+
         return self.__rpc().info(id)
 
-    ''' keep more cleanAt cicle '''
+
     def keep(self, id : int) -> bool:
+        """ Refresh life time of file in Server
+
+        Args:
+            id (int): id of exiting file
+        Returns:
+            bool: True if success
+        """
+
         return self.__rpc().keep(id)
 
-    ''' Remove file '''
+
     def remove(self, id : int) -> bool:
+        """Remove a file from server
+
+        Args:
+            id (int): id of exiting file
+        Returns:
+            bool: True if sucess
+        """
+
         return self.__rpc().remove(id)
 
     def cleanAt(self, days : int, hours : int, minute : int):
+        """ Max time of file in server
+
+        Args:
+            days (int): num of days, default (2)
+            hours (int): num of hours, default (0)
+            minute (int): num of minutes, default (0)
+        """
+
         self.__rpc().set_server_expire(days, hours, minute)
 
-    ''' Upload of file '''
+
     def upload(self, path_file: str, opt: dict = {}) -> Tuple[int, str]:
+        """ Upload a file
+
+        Args:
+            path_file (str): path file to store
+            opt (dict, optional): extra data. Defaults to {}.
+
+        Returns:
+            Tuple[int, str]: id of file and "ok" or -1 and error
+        """
+
         return self.__rpc().save_Xfer(path_file, opt)
 
-    ''' Download file '''
+
     def download(self, id : int, pathfile : str) -> Tuple[bool, str]:
+        """ Download file
+
+        Args:
+            id (int): id of file stored
+            pathfile (str): path and name to store
+
+        Returns:
+            Tuple[bool, str]: true and OK or False and error
+        """
 
         url = self.restAPI.getUrl() + '/download/' + str(id)
         response = requests.get(url, stream=True)

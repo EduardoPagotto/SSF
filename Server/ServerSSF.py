@@ -113,6 +113,7 @@ class ServerSSF(RPC_Responser):
             data = self.db.get(doc_id=id)
 
         if (data is not None) and (data['last'] != 0):
+            data['name'] = str(pathlib.Path(data['internal']).name)
             del data['internal']
             return data
                 
@@ -153,26 +154,24 @@ class ServerSSF(RPC_Responser):
 
         id : int = 0
         try:
-            pp = pathlib.Path(path_file_in).parent
-            path_file = pathlib.Path(pp, secure_filename(file.filename))
-
             now = datetime.now(tz=timezone.utc)
             ts = now.timestamp() 
-            data_file = {'pathfile': str(path_file.resolve()),
-                         'created': ts,
-                         'last': ts,
-                         'opt': opt,
-                         'internal' : 'Invalid'}
 
-            suffix = path_file.suffix
+            pp = pathlib.Path(path_file_in).parent
+            path_file = pathlib.Path(pp, secure_filename(file.filename))
+            suffix = path_file.suffix.lower()
 
             path1 : pathlib.Path = pathlib.Path(str(self.storage) + '/' + now.strftime('%Y%m%d/%H/%M'))
             if path1.exists() is False:
                 path1.mkdir(parents=True)
 
             self.count_file += 1
-            final : str = str(path1) + '/file{:05d}{}'.format(self.count_file, suffix)
-            data_file['internal'] = final
+            final : str = str(path1) + '/f{:04d}{}'.format(self.count_file, suffix)
+            data_file = {'pathfile': str(path_file.resolve()),
+                         'created': ts,
+                         'last': ts,
+                         'opt': opt,
+                         'internal' : final}
 
             with self.lock_db:
                 id = self.db.insert(data_file)
