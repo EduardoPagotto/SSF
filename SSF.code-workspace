@@ -21,14 +21,6 @@
 				"justMyCode": true
 			},
 			{
-				"name": "Python: Teste",
-				"type": "python",
-				"request": "launch",
-				"program": "${workspaceFolder:SSF}/teste.py",
-				"console": "integratedTerminal",
-				"justMyCode": true
-			},
-			{
 				"name": "Python: ClienteRPC",
 				"type": "python",
 				"request": "launch",

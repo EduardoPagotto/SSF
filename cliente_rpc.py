@@ -6,7 +6,7 @@ Update on 20220927
 '''
 
 import logging
-from Client.ClientSSF import ClientSSF
+from SSF.ClientSSF import ClientSSF
 
 def main():
 
