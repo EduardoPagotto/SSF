@@ -8,15 +8,19 @@ ENV SSF_CFG_PORT "5151"
 ENV SSF_CFG_DB "/opt/db"
 ENV SSF_CFG_STORAGE "/opt/storage"
 
-EXPOSE 5151/tcp
-
-COPY ./dist/SSF-1.0.1.tar.gz .
-COPY ./deploy/install.sh .
+COPY ./requirements.txt .
 COPY ./app.py .
 COPY ./main.py .
-COPY ./requirements.txt .
+COPY ./setup.py .
 
-RUN ./install.sh
+ADD ./SSF /var/app/SSF/.
+
+RUN pip3 install --upgrade pip \
+    && pip3 install -r requirements.txt 
+
+RUN pip3 install .
+
+EXPOSE 5151/tcp
 
 # Iniciar aplicação
 CMD ["python3", "./main.py"]
