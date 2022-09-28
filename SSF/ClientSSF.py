@@ -6,10 +6,9 @@ Update on 20220927
 '''
 
 import json
-import logging
 import pathlib
 import shutil
-from typing import Tuple
+from typing import Optional, Tuple
 import requests
 
 from SSF.SimplestRPC.ConnectionControl import ConnectionControl
@@ -54,7 +53,7 @@ class ClientSSF(object):
 
         return ProxyObject(self.restAPI)
 
-    def info(self, id : int) -> dict | None:
+    def info(self, id : int)  -> Optional[ dict ]:
         """ Get a dictionary with properties of file stored
 
         Args:
