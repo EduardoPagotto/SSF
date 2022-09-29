@@ -11,8 +11,8 @@ import shutil
 from typing import Optional, Tuple
 import requests
 
-from SSF.SimplestRPC.ConnectionControl import ConnectionControl
-from SSF.SimplestRPC.ProxyObject import ProxyObject
+from sJsonRpc.ConnectionControl import ConnectionControl
+from sJsonRpc.ProxyObject import ProxyObject
 
 class ConnectionRestApi(ConnectionControl):
     def __init__(self, addr : str):

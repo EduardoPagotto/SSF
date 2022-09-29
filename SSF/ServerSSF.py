@@ -15,9 +15,9 @@ from datetime import datetime, timedelta, timezone
 from werkzeug.utils import secure_filename
 from tinydb import TinyDB, Query
 
-from SSF.SimplestRPC.RPC_Responser import RPC_Responser
-from SSF.SimplestRPC.__init__ import __version__ as VERSION
-from SSF.SimplestRPC.__init__ import __date_deploy__ as DEPLOY
+from sJsonRpc.RPC_Responser import RPC_Responser
+from .__init__ import __version__ as VERSION
+from .__init__ import __date_deploy__ as DEPLOY
 
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'zip', 'jpg'])
 

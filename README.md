@@ -1,16 +1,6 @@
 # SSF
 Simple Storage File
 
-## Command python in ClientSSf.py
-- upload(self, path_file: str, opt: dict = {}) -> Tuple[int, str]:
-    upload file of 'path_file' with optinal 'opt' dictionary 
-- download(self, id : int, pathfile : str) -> Tuple[bool, str]:
-- info('id') 
-- keep(self, id : int) -> bool:
-- remove(self, id : int) -> bool:
-- cleanAt(self, days : int, hours : int, minute : int):
-
-
 ## Running and debug local
 1. Set VENV:
     ```bash
@@ -19,6 +9,8 @@ Simple Storage File
     source .venv/bin/activate
     # install deps
     pip3 install -r requirements.txt
+    cd sJsonRpc
+    pip3 install .
     ```
 
 2. Start Server in line command
