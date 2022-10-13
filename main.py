@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 Created on 20220924
-Update on 20220926
+Update on 20221013
 @author: Eduardo Pagotto
 '''
 
@@ -10,11 +10,6 @@ import os
 import pathlib
 from app import app, rpc, SSF_CFG_IP, SSF_CFG_PORT 
 from flask import request, jsonify, send_from_directory
-
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'zip', 'jpg'])
-
-def allowed_file(filename):
-	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route("/")
 def home():

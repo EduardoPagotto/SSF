@@ -1,14 +1,16 @@
 '''
 Created on 20220924
-Update on 20220926
+Update on 20221013
 @author: Eduardo Pagotto
 '''
 
+import json
 import logging
+import os
 import pathlib
 import time
 
-from typing import Any, Tuple
+from typing import Any, Optional, Tuple
 from threading import Lock, Thread
 from datetime import datetime, timedelta, timezone
 
@@ -19,23 +21,42 @@ from sJsonRpc.RPC_Responser import RPC_Responser
 from .__init__ import __version__ as VERSION
 from .__init__ import __date_deploy__ as DEPLOY
 
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'zip', 'jpg'])
-
-def allowed_file(filename):
-	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 class ServerSSF(RPC_Responser):
     def __init__(self, path_db : str, path_storage : str) -> None:
         super().__init__(self)
 
-        self.lock_db = Lock()
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s %(name)-12s %(levelname)-8s %(threadName)-16s %(funcName)-20s %(message)s',
+            datefmt='%H:%M:%S',
+        )
+
+        logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
+        logging.getLogger('urllib3').setLevel(logging.CRITICAL)
 
         path1 = pathlib.Path(path_db)
         path1.mkdir(parents=True, exist_ok=True)
         self.db = TinyDB(str(path1) + '/master.json')
+        self.lock_db = Lock()
 
         self.storage = pathlib.Path(path_storage)
         self.storage.mkdir(parents=True, exist_ok=True)
+
+        self.log = logging.getLogger('SSF')
+        self.log.info(f'>>>>>> SSF v-{VERSION} ({DEPLOY}), DB: {str(path1)} Storage: {str(self.storage)}')
+
+        self.allowed : Optional[set] = None
+        allowed = os.getenv('SSF_ALLOWED_EXTENSIONS')
+        if allowed:
+            try:
+                env_list : list = json.loads(allowed)
+                self.allowed = set(env_list)
+                self.log.info('SSF_ALLOWED_EXTENSIONS: ' + str(self.allowed))
+            except Exception as exp:
+                self.log.error('SSF_ALLOWED_EXTENSIONS is invalid: ' + str(exp.args[0]))
+        else:
+             self.log.info('SSF_ALLOWED_EXTENSIONS: *')
+
 
         self.delta = timedelta(days=0, hours=2, minutes=0)
         self.cleanAt : tuple = (0,2,0)
@@ -46,17 +67,6 @@ class ServerSSF(RPC_Responser):
         self.tot_dowload : int = 0
         self.ticktack : int = 0
         self.done : bool = False
-
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format='%(asctime)s %(name)-12s %(levelname)-8s %(threadName)-16s %(funcName)-20s %(message)s',
-            datefmt='%H:%M:%S',
-        )
-
-        logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
-
-        self.log = logging.getLogger('SimplestRPCServerSSF')
-        self.log.info(f'>>>>>> SSF v-{VERSION} ({DEPLOY}), DB: {str(path1)} Storage: {str(self.storage)}')
 
         self.t_cleanner : Thread = Thread(target=self.cleanner, name='cleanner_files')
         self.t_cleanner.start()
@@ -69,6 +79,37 @@ class ServerSSF(RPC_Responser):
                 Clean at-> Days: {self.cleanAt[0]} hours: {self.cleanAt[1]} minutes: {self.cleanAt[2]}'
 
         return msg
+
+    def allowed_file(self, filename : str) -> bool:
+        if self.allowed:
+            return '.' in filename and filename.rsplit('.', 1)[1].lower() in self.allowed
+
+        return True
+
+    def removeEmptyFolders(self, path : str, removeRoot : bool = True):
+        """Remove empty directorys
+
+        Args:
+            path (_type_): path to find and remove
+            removeRoot (bool, optional): if true remove root path . Defaults to True.
+        """
+
+        if not os.path.isdir(path):
+            return
+
+        # remove empty subfolders
+        files = os.listdir(path)
+        if len(files):
+            for f in files:
+                fullpath = os.path.join(path, f)
+                if os.path.isdir(fullpath):
+                    self.removeEmptyFolders(fullpath)
+
+        # if folder empty, delete it
+        files = os.listdir(path)
+        if len(files) == 0 and removeRoot:
+            self.log.info(f"path: {path}")
+            os.rmdir(path)
 
     def cleanner(self) ->None:
         """[Garbage collector of files]
@@ -99,6 +140,7 @@ class ServerSSF(RPC_Responser):
                 if len(ll) > 0:
                     with self.lock_db:
                         self.db.remove(doc_ids=ll)
+                        self.removeEmptyFolders(str(self.storage), False)
 
                 self.log.debug(f'Tick-Tack: {int(self.ticktack / 12)} In: {self.tot_in} Del: {self.tot_out} Tot: {self.tot_in - self.tot_out}')
 
@@ -149,8 +191,8 @@ class ServerSSF(RPC_Responser):
         if file is None:
             return -1, 'No file part in the request'
 
-        if allowed_file(file.filename) is False:
-            return -1, 'Allowed file types are: ' + str(ALLOWED_EXTENSIONS)
+        if self.allowed_file(file.filename) is False:
+            return -1, f'Allowed file types are: {str(self.allowed)}'
 
         id : int = 0
         try:

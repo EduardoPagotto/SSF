@@ -40,6 +40,7 @@
 				"env": {
 					"FLASK_APP": "main.py",
 					"FLASK_DEBUG": "1",
+					"SSF_ALLOWED_EXTENSIONS": "[\"txt\", \"pdf\", \"zip\", \"jpg\"]"
 				},
 				"args": [
 					"run",

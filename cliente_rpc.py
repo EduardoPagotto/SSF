@@ -26,7 +26,7 @@ def main():
         count=0
         while (count < 500):
 
-            id, msg = client.upload('./data/disco1.jpg')
+            id, msg = client.upload('./data/disco1.xxx')
             log.debug(f'Id:{id}: msg:{msg} info:{str(client.info(id))}')
 
             id, msg = client.upload('./data/disco1.jpg')
@@ -34,8 +34,8 @@ def main():
 
             zzz = client.remove(id)
 
-            valid, msg_erro = client.download(id, './testez1.jpg')
-            log.debug(f'Id:{id}: msg:{msg_erro} info:{str(client.info(id))}')
+            #valid, msg_erro = client.download(id, './testez1.jpg')
+            #log.debug(f'Id:{id}: msg:{msg_erro} info:{str(client.info(id))}')
 
             id, msg = client.upload('./data/disco1.jpg')
             log.debug(f'Id:{id}: msg:{msg} info:{str(client.info(id))}')
